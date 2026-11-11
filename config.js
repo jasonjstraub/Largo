@@ -251,5 +251,44 @@ const LARGO_CONFIG = {
     "New York Voices", "Samara Joy", "The Piano Guys", "Lindsey Stirling", "Westminster Chorus", "Roomful of Teeth"
   ],
 
+  /* Memes: images live in the memes/ folder. "note" adds a short "music behind the meme" line.
+     "lessons" ties a meme to Measure Up lessons so it shows up around the time students learn that idea. */
+  memes: [
+    { file: "brass-my-time-has-come.webp", caption: "Brass players when they see ffff 🎺", lessons: ["d1","bd1","e2"], note: "<b>ffff</b> means louder than fortissimo! The <b>&gt;</b> marks are accents, and <b>tr~~~</b> is a trill: rapidly alternating between two neighboring notes." },
+    { file: "paganini-is-dead.webp", caption: "Violinists know 😭", lessons: ["r3","br2"], note: "Niccolò Paganini (1782–1840) was a violin superstar. His music is packed with fast sixteenth-note runs. The little numbers above the notes are <b>fingerings</b>." },
+    { file: "new-napping-spot.webp", caption: "Orchestra room after lunch", lessons: [] },
+    { file: "chopin-messing-with-you.webp", caption: "Chopin: 😇 … then 😈", lessons: ["r5","br5","i8","bi8"], note: "<b>Lento</b> means slow. <b>Allegro con brio</b> means fast and with fire. The <b>8va</b> line above the notes means play them an octave higher." },
+    { file: "its-all-coming-together.webp", caption: "That first time all four parts click 🥹", lessons: ["hm2","bhm2","hm1"], note: "That’s <b>harmony</b>: each section sings a different note of the chord at the same time. Learn your part, then listen for how it fits." },
+    { file: "choir-michael-scott.webp", caption: "Which one are you? 😂", lessons: [], note: "Voice parts from highest to lowest: <b>soprano, mezzo-soprano, alto</b> (treble voices) and <b>tenor, baritone, bass</b>." },
+    { file: "every-choir-has-one.webp", caption: "Silence is part of the music too 🤫", lessons: ["e4","be4"], note: "Hold still until the conductor lowers their hands. The final chord needs time to ring. A <b>fermata</b> or <b>caesura</b> (//) means the silence matters." },
+    { file: "descant-or-lost.webp", caption: "Sopranos, are we okay? 👀", lessons: [], note: "A <b>descant</b> is a separate, higher melody sung above the main tune, often by sopranos on the last verse." },
+    { file: "tenor-bass-baritones.webp", caption: "Baritones, we see you 💚", lessons: [], note: "<b>Baritone</b> sits between tenor and bass, and it’s the most common adult male voice type." },
+    { file: "choir-spongebob.webp", caption: "Choir sections, explained 🧽", lessons: [] },
+    { file: "choir-starter-pack.webp", caption: "Choir starter pack 🎼", lessons: ["erm","berm"], note: "<b>D.S. al Coda</b>: go back to the sign (segno), then jump to the <b>Coda</b> when you see “To Coda.”" },
+    { file: "non-choir-kids.webp", caption: "Choir kids have the best inside jokes", lessons: [] },
+    { file: "forgot-music-share.webp", caption: "We’ve all been there 😅", lessons: [], note: "Sharing tip: hold the folder up and out so you can see the conductor over the top." },
+    { file: "tenors-tempo.webp", caption: "Tempo, tenors! TEMPO! ⏱️", lessons: ["r5","br5"], note: "<b>Dragging</b> means falling behind the beat; <b>rushing</b> means getting ahead. Watch the conductor’s beat pattern to stay together." },
+    { file: "what-i-look-at-pie.webp", caption: "Be honest 📊", lessons: [], note: "Watch the conductor! Most choir mystery problems (entrances, cutoffs, tempo) are solved by looking up." },
+    { file: "conducting-along.webp", caption: "“Studying” with classical music 🎻", lessons: ["rm1","brm1"], note: "Conductors show the beat with patterns. In 4/4 it’s <b>down – in – out – up</b>. Try conducting along!" },
+    { file: "cat-listening.webp", caption: "Me listening to music 🐱", lessons: [] },
+    { file: "musician-not-stressful.webp", caption: "Perfectly normal musician life", lessons: [] },
+    { file: "normal-vs-pianists.webp", caption: "Pianist budgeting 🎹", lessons: [], note: "A concert grand piano has 88 keys and about 230 strings." },
+    { file: "rachmaninoff-paw.webp", caption: "Rachmaninoff’s hands were built different 🖐️", lessons: ["i6","bi2"], note: "Sergei Rachmaninoff had famously huge hands; he could reportedly stretch a 13th on the keyboard. That’s why his chords are so wide!" },
+    { file: "giving-these-bars-everything.webp", caption: "Giving it 110% 😂", lessons: ["nks","bn2","r1"], note: "That <b>4</b> over a long bar is a <b>multi-measure rest</b>: rest for 4 whole measures. And 7 sharps is <b>C♯ major</b>, where every note is sharp!" },
+    { file: "most-songs-4-4.webp", caption: "Technically correct 🧮", lessons: ["rm1","brm1"], note: "<b>4/4</b> means 4 beats per measure, and the quarter note gets the beat. It’s also called <b>common time</b>." },
+    { file: "three-four-six-eight.webp", caption: "Math says same. Musicians say NO.", lessons: ["rm1","brm1"], note: "Same fraction, different feel! <b>3/4</b> = 3 beats (ONE-two-three). <b>6/8</b> = 2 big beats, each split in three (ONE-two-three FOUR-five-six). 3/4 is <b>simple</b> meter; 6/8 is <b>compound</b>." },
+    { file: "composers-treble-clefs.webp", caption: "Even Mozart’s treble clef was messy ✍️", lessons: ["nt2","bnc1"], note: "The treble clef is a fancy letter <b>G</b>. Its curl wraps around the G line, the 2nd line from the bottom." },
+    { file: "flight-of-bumblebee.webp", caption: "Pest control 🐝", lessons: ["ss6","bs4"], note: "Rimsky-Korsakov’s <b>Flight of the Bumblebee</b> is famous for nonstop fast <b>chromatic</b> runs: almost all half steps!" },
+    { file: "car-horns-c-e-g.webp", caption: "Honestly though 🚗🎶", lessons: ["hm1","bhm1"], note: "C, E and G make a <b>C major triad</b> (do – mi – sol). Any combination of those notes would sound good together." },
+    { file: "should-you-practice.webp", caption: "The answer is always yes", lessons: [] },
+    { file: "practice-practice.webp", caption: "The secret is out 🤫", lessons: [] },
+    { file: "practice-social-life.webp", caption: "Worth it though 🎵", lessons: [] },
+    { file: "bars-180-181.webp", caption: "Why does this happen?! 😩", lessons: [], note: "Pro tip: when you join two practiced bars, practice the <b>seam</b>: the last beat of one bar into the first beat of the next." }
+  ],
+
+  // Share of the feed that is learning posts (Measure Up lessons, games, quick checks). 0.6 = 60%.
+  learningShare: 0.6,
+  measureUpUrl: "https://measure-up-ou22.onrender.com/",
+
   block: []
 };
