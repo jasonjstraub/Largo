@@ -66,6 +66,7 @@ const L={
     return this.postFor(l,mode);
   },
   postFor(l,mode){
+    if(window.SHARE&&SHARE.boost)try{SHARE.boost(l.id)}catch(e){}
     const r=this.rec(l.id),ci=this.s.card[l.id]||0,games=this.gamesFor(l);
     let fmt;
     if(mode==="new"&&ci<l.cards.length&&Math.random()<.7)fmt="card";

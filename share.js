@@ -6,13 +6,26 @@
    ===================================================================== */
 (function(){
 "use strict";
-const SH={items:[],q:[],loaded:false};
+const SH={items:[],q:[],pri:[],shown:[],loaded:false};
 window.SHARE=SH;
 const helper=()=>((typeof CFG!=="undefined"&&CFG.helperUrl)||"").replace(/\/+$/,"");
-SH.load=async function(){const h=helper();if(!h)return;try{const j=await (await fetch(h+"/shared")).json();SH.items=j.items||[];SH.q=SH.items.slice(0,6).concat(shuffle(SH.items.slice(6)));SH.loaded=true}catch(e){}};
-SH.next=function(){if(!SH.items.length)return null;let it=SH.q.shift();if(!it){SH.q=shuffle(SH.items);it=SH.q.shift()}return SH.post(it)};
-SH.fresh=function(){return SH.q.length&&SH.items.indexOf(SH.q[0])<6};
-SH.post=it=>({id:"sh_"+it.id,type:"shared",page:"teacher",topic:it.topic||"perform",level:"msc",published:it.addedAt,it});
+SH.load=async function(){const h=helper();if(!h)return;try{const j=await (await fetch(h+"/shared")).json();SH.items=j.items||[];SH.q=[];SH.loaded=true}catch(e){}};
+/* A post linked to lessons waits until the student has reached one of them
+   (finished it, or it's one of the next lessons up). Posts with no lesson are for everyone. */
+function reached(){if(!window.LEARN)return null;try{const a=LEARN.activeIds();return new Set([...a.frontier,...a.done])}catch(e){return null}}
+function ok(it,R){if(!(it.lessons&&it.lessons.length))return true;R=R||reached();return!!R&&it.lessons.some(id=>R.has(id))}
+SH.eligible=function(){const R=reached();return SH.items.filter(it=>ok(it,R))};
+/* newest few first, then everything in a shuffled loop */
+function refill(){const el=SH.eligible(),fresh=el.slice(0,6).filter(it=>!SH.shown.includes(it.id));SH.q=fresh.concat(shuffle(el.filter(it=>!fresh.includes(it))))}
+SH.next=function(){if(!SH.items.length)return null;const R=reached();let it=null;
+  while(SH.pri.length&&!it){const c=SH.pri.shift();if(ok(c,R))it=c}
+  if(!it){for(let k=0;k<2&&!it;k++){if(!SH.q.length)refill();while(SH.q.length&&!it){const c=SH.q.shift();if(SH.items.includes(c)&&ok(c,R))it=c}}}
+  if(!it)return null;SH.shown.unshift(it.id);SH.shown=SH.shown.slice(0,40);return SH.post(it)};
+SH.fresh=function(){if(SH.pri.length)return true;const el=SH.eligible();return el.slice(0,6).some(it=>!SH.shown.includes(it.id))};
+/* when a lesson shows up in the feed, its linked posts move up the line */
+SH.boost=function(lessonId){const R=reached();SH.items.forEach(it=>{if(it.lessons&&it.lessons.includes(lessonId)&&ok(it,R)&&!SH.pri.includes(it)&&SH.shown.indexOf(it.id)!==0)SH.pri.push(it)});SH.pri=SH.pri.slice(0,4)};
+SH.post=it=>{const R=reached();const les=(it.lessons||[]).find(id=>R&&R.has(id))||(it.lessons||[])[0]||null;return{id:"sh_"+it.id,type:"shared",page:"teacher",topic:it.topic||"perform",level:"msc",published:it.addedAt,it,lesson:les}};
+function lessonChip(p){if(!p.lesson||!window.LEARN)return"";const l=LEARN.all().find(x=>x.id===p.lesson);return l?`<div class="ptext" style="font-size:13px;opacity:.8;margin-top:-4px">📚 Goes with: <b>${esc(l.title)}</b></div>`:""}
 
 /* turn a link into something we can show */
 function embed(raw){let u;try{u=new URL(raw)}catch(e){return{kind:"link"}}
@@ -27,7 +40,7 @@ function embed(raw){let u;try{u=new URL(raw)}catch(e){return{kind:"link"}}
   return{kind:"link"}}
 SH.embed=embed;
 const LABEL={facebook:"📘 Facebook",instagram:"📸 Instagram",tiktok:"🎵 TikTok",youtube:"▶️ YouTube",spotify:"🟢 Spotify",apple:"🍎 Apple Music",link:"🔗 Link"};
-SH.body=function(p){const it=p.it,e=embed(it.url),cap=it.caption?`<div class="ptext">${esc(it.caption)}</div>`:"";
+SH.body=function(p){const it=p.it,e=embed(it.url),cap=(it.caption?`<div class="ptext">${esc(it.caption)}</div>`:"")+lessonChip(p);
   if(e.kind==="youtube")return cap+`<div class="yt ${e.short?"short":""}" data-v="${e.id}"><img src="https://i.ytimg.com/vi/${e.id}/hqdefault.jpg" alt="" loading="lazy"><span class="ytp">▶</span></div><a class="ytlink" href="${esc(it.url)}" target="_blank" rel="noopener">▶️ Watch on YouTube ↗</a>${llHTML(p,p.topic==="perform"?"perform":"learn")}`;
   if(e.kind==="link")return cap+`<a class="link" href="${esc(it.url)}" target="_blank" rel="noopener"><div class="thumb og" style="background:linear-gradient(135deg,#1e3a8a,#3457d5)">🔗</div><div class="lbody"><div class="dom">${esc(new URL(it.url).hostname.replace(/^www\./,""))}</div><div class="lt">${esc(it.caption||it.url)}</div></div></a>`;
   return cap+`<div class="fbwrap"><iframe loading="lazy" src="${e.src}" width="${e.w}" height="${e.h}" style="border:none;overflow:hidden;max-width:100%;background:#fff;border-radius:8px" scrolling="no" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share; fullscreen" allowfullscreen title="Shared post"></iframe></div><a class="ytlink" href="${esc(it.url)}" target="_blank" rel="noopener">${LABEL[e.kind]} · open original ↗</a>${["facebook","instagram","tiktok","spotify","apple"].includes(e.kind)&&p.topic==="perform"?llHTML(p,"perform"):""}`};
