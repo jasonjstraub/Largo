@@ -181,10 +181,19 @@ function playYT(s, tap) {
   const v = $(".sh-vid", s), id = s._p.v.id; if (v._on && !tap) return;
   if (!v._on) {
     v._on = true;
-    v.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&playsinline=1&loop=1&playlist=${id}&rel=0&modestbranding=1&enablejsapi=1" title="${esc(s._p.v.title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen frameborder="0"></iframe>`;
+    v.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&playsinline=1&loop=1&playlist=${id}&rel=0&modestbranding=1&enablejsapi=1&controls=0" title="${esc(s._p.v.title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen frameborder="0"></iframe><div class="sh-shield"></div><span class="sh-paused" hidden>⏸</span>`;
+    v._paused = false;
+    /* a see-through layer over the video: swipes always move to the next post, a tap pauses or plays */
+    $(".sh-shield", v).onclick = e => {
+      e.stopPropagation();
+      if (!SH.soundOn) { setSound(true); return; }
+      v._paused = !v._paused; ytCmd(v, v._paused ? "pauseVideo" : "playVideo"); $(".sh-paused", v).hidden = !v._paused;
+    };
+    return void ((SH.soundOn || tap) && unmuteSoon(v, tap));
   }
-  if (SH.soundOn || tap) { if (tap && !SH.soundOn) setSound(true); [700, 1600, 3000].forEach(ms => setTimeout(() => ytCmd(v, "unMute"), ms)); }
+  if (SH.soundOn || tap) unmuteSoon(v, tap);
 }
+function unmuteSoon(v, tap) { if (tap && !SH.soundOn) setSound(true); [700, 1600, 3000].forEach(ms => setTimeout(() => ytCmd(v, "unMute"), ms)); }
 function ytCmd(v, func) { const f = $("iframe", v); if (f && f.contentWindow) try { f.contentWindow.postMessage(JSON.stringify({ event: "command", func, args: [] }), "*"); } catch (e) {} }
 function autoSound(s) {
   if (s._auto) return; const p = s._p;
@@ -194,13 +203,34 @@ function autoSound(s) {
 function setSound(on) {
   SH.soundOn = on; tapBtn.hidden = true; SH.tapDone = true;
   sndBtn.textContent = on ? "🔊" : "🔇";
-  if (on) { try { ac(); } catch (e) {} }
+  if (on) unlockAudio();
   const s = SH.active; if (!s) return;
   if (s._p.type === "ytv") { const v = $(".sh-vid", s); if (on) playYT(s, false); else ytCmd(v, "mute"); }
   else if (on) autoSound(s); else stopAll();
 }
 sndBtn.onclick = () => setSound(!SH.soundOn);
 tapBtn.onclick = () => setSound(true);
+
+
+/* ---------------- iPhone silent switch ----------------
+   With the ring/silent switch on silent, iPhones mute sounds made by web pages
+   (lesson examples, quizzes, games) but still play videos and music. Asking for
+   "playback" audio, and keeping a silent audio track running, makes Largo's
+   sounds play like music does. */
+let unlocked = false;
+function silentWav() {
+  const n = 800, b = new Uint8Array(44 + n), v = new DataView(b.buffer), w = (o, t) => [...t].forEach((c, i) => b[o + i] = c.charCodeAt(0));
+  w(0, "RIFF"); v.setUint32(4, 36 + n, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); w(36, "data"); v.setUint32(40, n, true); b.fill(128, 44);
+  return URL.createObjectURL(new Blob([b], { type: "audio/wav" }));
+}
+function unlockAudio() {
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
+  try { ac(); } catch (e) {}
+  if (unlocked) return; unlocked = true;
+  try { const a = new Audio(silentWav()); a.loop = true; a.setAttribute("playsinline", ""); a.setAttribute("aria-hidden", "true"); a.play().catch(() => { unlocked = false; }); SH.keepAlive = a; } catch (e) { unlocked = false; }
+}
+["touchend", "click", "keydown"].forEach(ev => document.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
 
 /* ---------------- moving between slides ---------------- */
 function go(d) {
