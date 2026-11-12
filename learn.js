@@ -26,6 +26,8 @@ const VOCAL_ONLY_GAMES=new Set(["echo","sign"]);
 const LEGACY={guido:"s1","guido-a":"s1","solfa-wiki":"s1","meme-sol":"s1","marcus-sight":"n3","q-face":"nt4","q-bass-lines":"nt8","v-major":"s1","meme-fermata":"e4","car-dyn":"d1","v-dyn":"d1","poll-tempo":"r5",sound4:"s0","v-sound":"s0",a440:"s0","timbre-a":"s0","v-rhythm":"r1","meme-rhythm":"r2","q-sixteenth":"r3","q-dotted":"r3","v-minor":"s4",relminor:"n4","v-tite":"vs1","v-triads":"hm1","v-cad":"hm5","meme-tido":"s3","triads-txt":"hm1","q-dim":"hm1","v-1451":"hm7","v-hooks":"i2","q-twinkle":"i2","v-penta":"ssp","v-modes":"s7","v-minors":"s4h","modes-txt":"s7","modes-a":"s7",curwen:"shs","v-signs":"shs","q-fist":"shs","meme-acc":"nacc",cclef:"ncc","q-gmaj":"nks",keytrick:"nks","poll-int":"i3","poll-clef":"nt2",intcount:"i1","jada-4part":"hm2","q-ferm":"e4","meme-ts":"rm1","penta-txt":"ssp","overtone-sing":"s0","vs-legato":"e1"};
 const TO_BAND={s0:"bt0",r1:"br1",r2:"br1",r3:"br2",r5:"br5",rm1:"brm1",d1:"bd1",d2:"bd2",e1:"be1",e4:"be4",nks:"bn2",n4:"bn2",nt2:"bnc1",nt4:"bnc1",nt8:"bnc1",nacc:"bn2",i1:"bi1",i2:"bi1",i3:"bi2",hm1:"bhm1",hm2:"bhm2",hm5:"bhm5",hm7:"bhm7",ssp:"bssp",s4:"bs3",s4h:"bvs2",vs1:"bvs1",s7:"bvs3"};
 
+/* Measure Up wording that doesn't fit Largo: give "Hear the Difference" its own mini quiz */
+try{const C=window.MU_CURRICULUM||{};[...(C.vocal||[]),...(C.inst||[])].forEach(l=>(l.cards||[]).forEach(c=>{if(!c.w&&/in a row to move on/.test(c.html||"")){c.html=c.html.replace(/\s*Choose which one\. Get \d+ in a row to move on\./," Which one?").replace(/\s*Get \d+ in a row to move on\./,"");if(/property changes/.test(c.html))c.w={t:"prop"}}}))}catch(e){}
 const L={
   s:null,justSynced:false,recent:[],sess:{learn:0,live:0},
   init(){
@@ -154,6 +156,7 @@ function widgetHTML(w){
   if(w.t==="scale"){const SC={major:["C4","D4","E4","F4","G4","A4","B4","C5"],minor:["C4","D4","Eb4","F4","G4","Ab4","Bb4","C5"],natural:["C4","D4","Eb4","F4","G4","Ab4","Bb4","C5"],harmonic:["C4","D4","Eb4","F4","G4","Ab4","B4","C5"],melodic:["C4","D4","Eb4","F4","G4","A4","B4","C5"],chromatic:["C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4","C5"]};
     return `<div class="mw">${w.scales.map(k=>{const key=Object.keys(SC).find(x=>String(k).toLowerCase().includes(x))||"major";return `<div class="gstaff">${staffSVG(SC[key],{clef:"treble",gap:9,spacing:key==="chromatic"?28:36,head:"black"})}</div><button class="btn ghost" data-scale="${key}">▶ Hear ${esc(String(k))}</button>`}).join("")}</div>`}
   if(w.t==="dyn")return `<div class="mw">${[["pp",.06],["p",.14],["mp",.25],["mf",.4],["f",.6],["ff",.9]].map(([d,v])=>`<button class="btn ghost" data-dyn="${v}"><span class="mus" style="font-size:26px;line-height:0">${d.split("").map(c=>G[c]).join("")}</span></button>`).join("")}</div>`;
+  if(w.t==="prop")return `<div class="mw prop"><button class="btn" data-prop-play="1">▶ Hear the two sounds</button><div class="opts" style="margin-top:10px">${["Pitch","Duration","Loudness","Timbre"].map(o=>`<button class="opt" data-prop="${o}">${o}</button>`).join("")}</div><div class="pm prop-fb" style="min-height:20px;margin-top:8px"></div><button class="btn ghost" data-prop-new="1" hidden>Next sound ↻</button><span class="pm prop-sc" style="margin-left:8px"></span></div>`;
   if(w.t==="tempo")return `<div class="mw">${[["Largo",50],["Adagio",70],["Andante",90],["Allegro",132],["Presto",180]].map(([n,b])=>`<button class="btn ghost" data-bpm="${b}">▶ ${n} (${b})</button>`).join("")}</div>`;
   if(w.t==="chrom"){const up=["do","di","re","ri","mi","fa","fi","sol","si","la","li","ti","do’"],dn=["do’","ti","te","la","le","sol","se","fa","mi","me","re","ra","do"];const row=w.rows==="down"?dn:up;return `<div class="mw"><div class="mwt">${tiles(row,-1,{play:true})}</div></div>`}
   return "";
@@ -168,6 +171,14 @@ function wireWidget(art,p){
   $$("[data-hx]",art).forEach(b=>b.onclick=()=>play(specEvents(w.items[+b.dataset.hx].spec,doM)));
   $$("[data-scale]",art).forEach(b=>b.onclick=()=>{const SC={major:[0,2,4,5,7,9,11,12],minor:[0,2,3,5,7,8,10,12],natural:[0,2,3,5,7,8,10,12],harmonic:[0,2,3,5,7,8,11,12],melodic:[0,2,3,5,7,9,11,12],chromatic:[0,1,2,3,4,5,6,7,8,9,10,11,12]};play((SC[b.dataset.scale]||SC.major).map((r,i)=>[60+r,i*.32,.34,.6,vox()]))});
   $$("[data-dyn]",art).forEach(b=>b.onclick=()=>play([[67,0,1,+b.dataset.dyn,vox()]]));
+  if(w.t==="prop"){const box=$(".prop",art);if(box){let cur=null,got=0,tries=0;
+    const OPT={Pitch:[[60,0,.9,.55,"piano"],[67,1.3,.9,.55,"piano"]],Duration:[[64,0,.35,.55,"piano"],[64,1.3,1.3,.55,"piano"]],Loudness:[[64,0,.9,.12,"piano"],[64,1.3,.9,.75,"piano"]],Timbre:[[64,0,.9,.55,"piano"],[64,1.3,.9,.55,"flute"]]};
+    const fresh=()=>{const k=Object.keys(OPT);let n;do n=k[Math.floor(Math.random()*k.length)];while(n===cur&&Math.random()<.7);cur=n;$$("[data-prop]",box).forEach(b=>{b.disabled=false;b.classList.remove("right","wrong")});$(".prop-fb",box).textContent="";$("[data-prop-new]",box).hidden=true;};
+    const hear=()=>{if(!cur)fresh();let ev=OPT[cur].map(e=>e.slice());if(Math.random()<.5){const a=ev[0][1],b=ev[1][1];ev[0][1]=b;ev[1][1]=a;ev.sort((x,y)=>x[1]-y[1]);ev[1][1]=1.3;ev[0][1]=0}play(ev)};
+    $("[data-prop-play]",box).onclick=hear;
+    $$("[data-prop]",box).forEach(b=>b.onclick=()=>{if(!cur)return hear();const ok=b.dataset.prop===cur;tries++;if(ok)got++;b.classList.add(ok?"right":"wrong");if(!ok)$(`[data-prop="${cur}"]`,box).classList.add("right");$$("[data-prop]",box).forEach(x=>x.disabled=true);
+      $(".prop-fb",box).textContent=ok?"✅ Yes! Only the "+cur.toLowerCase()+" changed.":"❌ It was "+cur.toLowerCase()+". Listen again and compare.";$(".prop-sc",box).textContent=got+" of "+tries+" right";$("[data-prop-new]",box).hidden=false;try{L.result(p.lesson,ok)}catch(e){}learn(ok?3:1)});
+    $("[data-prop-new]",box).onclick=()=>{fresh();hear()};}}
   $$("[data-bpm]",art).forEach(b=>b.onclick=()=>{const bt=60/+b.dataset.bpm;play([0,1,2,3,4,5,6,7].map(i=>[i%4?79:84,i*bt,.06,i%4?.35:.6,"click"]))});
   const tr=$("[data-try]",art);if(tr)tr.onclick=()=>{const host=$(".lgx-host",art);host.hidden=false;tr.remove();
     const map={deg:"hear-name",iv:"iv-dir",tend:"tend",quality:null,inv:"chord-inv",cad:null,prog:"prog",vs:null};
